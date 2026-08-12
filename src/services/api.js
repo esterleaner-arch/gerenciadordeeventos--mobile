@@ -1,22 +1,30 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
+const TOKEN_KEY = 'GerenciadorEventos-token';
+
 const api = axios.create({
-  // ⚠️ SUBSTITUA PELO SEU ENDEREÇO IPV4 DO WINDOWS (Mantenha a porta 8080 e o /api)
-  baseURL: 'http://192.168.0.204:8080/api', 
+  // IP do computador Windows onde o Spring Boot está rodando
+  baseURL: 'http://192.168.0.204:8080/api',
   timeout: 10000,
 });
 
-// Interceptor: Lê o token criptografado do celular e injeta no cabeçalho
+// Interceptor: adiciona o JWT automaticamente nas requisições
 api.interceptors.request.use(
   async (config) => {
-    // Busca o token guardado no chip de segurança do aparelho móvel
-    const token = await SecureStore.getItemAsync('@GerenciadorEventos:token');
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (err) {
+      console.warn(
+        'SecureStore indisponível, requisição sem token.',
+        err
+      );
     }
-    
+
     return config;
   },
   (error) => {

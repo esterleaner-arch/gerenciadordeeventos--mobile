@@ -15,10 +15,13 @@ import {
   Platform
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import api from '../../services/api';
 
 export default function Home() {
   const { logoutService, user } = useAuth();
+  const { colors, fontScale } = useSettings();
+  const s = createStyles(colors, fontScale);
 
   // Estados dos eventos
   const [eventos, setEventos] = useState([]);
@@ -80,7 +83,7 @@ export default function Home() {
 
     try {
       if (editandoId) {
-        // Requisito 5: Atualiza apenas data e localização baseada no ID do evento
+        // Requisito 5: Atualiza o evento baseada no ID
         await api.put(`/eventos/${editandoId}`, payload);
       } else {
         // Requisito 4: Adiciona um novo evento associado ao administrador
@@ -144,55 +147,56 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={s.container}>
+      <View style={s.header}>
         <View>
-          <Text style={styles.headerTitle}>Painel de Eventos</Text>
-          <Text style={styles.headerSubtitle}>Gerenciamento Mobile</Text>
+          <Text style={s.brand}>Gerenciador do Evento</Text>
+          <Text style={s.headerTitle}>Painel de Eventos</Text>
+          <Text style={s.headerSubtitle}>Gerenciamento Mobile</Text>
         </View>
-        <TouchableOpacity style={styles.buttonLogout} onPress={logoutService} accessibilityRole="button">
-          <Text style={styles.buttonLogoutText}>Sair</Text>
+        <TouchableOpacity style={s.buttonLogout} onPress={logoutService} accessibilityRole="button">
+          <Text style={s.buttonLogoutText}>Sair</Text>
         </TouchableOpacity>
       </View>
 
       {erro ? (
-        <View style={styles.centerBox}><Text style={styles.errorText}>{erro}</Text></View>
+        <View style={s.centerBox}><Text style={s.errorText}>{erro}</Text></View>
       ) : loading ? (
-        <View style={styles.centerBox}><ActivityIndicator size="large" color="#044D78" /></View>
+        <View style={s.centerBox}><ActivityIndicator size="large" color={colors.accentCyan} /></View>
       ) : (
         /* FlatList nativa substitui o Grid da Web garantindo performance de rolagem */
         <FlatList
           data={eventos}
           keyExtractor={item => String(item.id)}
-          contentContainerStyle={styles.listContainer}
+          contentContainerStyle={s.listContainer}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhum evento cadastrado ainda.</Text>
+            <Text style={s.emptyText}>Nenhum evento cadastrado ainda.</Text>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <View style={s.card}>
               {item.imagemUrl ? (
-                <Image source={{ uri: item.imagemUrl }} style={styles.cardImage} />
+                <Image source={{ uri: item.imagemUrl }} style={s.cardImage} />
               ) : (
-                <View style={styles.cardImagePlaceholder}>
-                  <Text style={styles.cardImagePlaceholderText}>Sem imagem de capa</Text>
+                <View style={s.cardImagePlaceholder}>
+                  <Text style={s.cardImagePlaceholderText}>Sem imagem de capa</Text>
                 </View>
               )}
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.nome}</Text>
-                <Text style={styles.cardText}>
-                  <Text style={styles.boldLabel}>Data: </Text>
+              <View style={s.cardContent}>
+                <Text style={s.cardTitle}>{item.nome}</Text>
+                <Text style={s.cardText}>
+                  <Text style={s.boldLabel}>Data: </Text>
                   {Array.isArray(item.data) ? `${item.data[2]}/${item.data[1]}/${item.data[0]}` : item.data}
                 </Text>
-                <Text style={styles.cardText}>
-                  <Text style={styles.boldLabel}>Local: </Text>{item.localizacao}
+                <Text style={s.cardText}>
+                  <Text style={s.boldLabel}>Local: </Text>{item.localizacao}
                 </Text>
 
-                <View style={styles.cardActions}>
-                  <TouchableOpacity style={styles.buttonEdit} onPress={() => abrirEdicao(item)} accessibilityRole="button">
-                    <Text style={styles.buttonEditText}>Editar</Text>
+                <View style={s.cardActions}>
+                  <TouchableOpacity style={s.buttonEdit} onPress={() => abrirEdicao(item)} accessibilityRole="button">
+                    <Text style={s.buttonEditText}>Editar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.buttonDelete} onPress={() => handleExcluir(item.id, item.nome)} accessibilityRole="button">
-                    <Text style={styles.buttonDeleteText}>Excluir</Text>
+                  <TouchableOpacity style={s.buttonDelete} onPress={() => handleExcluir(item.id, item.nome)} accessibilityRole="button">
+                    <Text style={s.buttonDeleteText}>Excluir</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -203,44 +207,44 @@ export default function Home() {
 
       {/* Botão de Ação Flutuante para criar novos eventos */}
       <TouchableOpacity 
-        style={styles.fab} 
+        style={s.fab} 
         onPress={() => setModalAberta(true)}
         accessibilityLabel="Adicionar novo evento"
         accessibilityRole="button"
       >
-        <Text style={styles.fabText}>+</Text>
+        <Text style={s.fabText}>+</Text>
       </TouchableOpacity>
 
       {/* Modal de Formulário Mobile */}
       <Modal visible={modalAberta} animationType="slide" transparent onRequestClose={fecharModal}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editandoId ? 'Atualizar Evento' : 'Novo Evento'}</Text>
+        <KeyboardAvoidingView style={s.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={s.modalContent}>
+            <Text style={s.modalTitle}>{editandoId ? 'Atualizar Evento' : 'Novo Evento'}</Text>
             
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nome do Evento</Text>
-                <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Ex: Workshop Java" />
+            <View style={s.form}>
+              <View style={s.inputGroup}>
+                <Text style={s.label}>Nome do Evento</Text>
+                <TextInput style={s.input} value={nome} onChangeText={setNome} placeholder="Ex: Workshop Java" placeholderTextColor={colors.placeholder} />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data</Text>
-                <TextInput style={styles.input} value={data} onChangeText={setData} placeholder="DD/MM/AAAA ou AAAA-MM-DD" />
+              <View style={s.inputGroup}>
+                <Text style={s.label}>Data</Text>
+                <TextInput style={s.input} value={data} onChangeText={setData} placeholder="DD/MM/AAAA ou AAAA-MM-DD" placeholderTextColor={colors.placeholder} />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Localização</Text>
-                <TextInput style={styles.input} value={localizacao} onChangeText={setLocalizacao} placeholder="Ex: Auditório Central" />
+              <View style={s.inputGroup}>
+                <Text style={s.label}>Localização</Text>
+                <TextInput style={s.input} value={localizacao} onChangeText={setLocalizacao} placeholder="Ex: Auditório Central" placeholderTextColor={colors.placeholder} />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>URL da Imagem</Text>
-                <TextInput style={styles.input} value={imagemUrl} onChangeText={setImagemUrl} placeholder="https://..." autoCapitalize="none" />
+              <View style={s.inputGroup}>
+                <Text style={s.label}>URL da Imagem</Text>
+                <TextInput style={s.input} value={imagemUrl} onChangeText={setImagemUrl} placeholder="https://..." placeholderTextColor={colors.placeholder} autoCapitalize="none" />
               </View>
 
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.buttonSave} onPress={handleSalvarEvento} accessibilityRole="button">
-                  <Text style={styles.buttonSaveText}>Salvar</Text>
+              <View style={s.modalActions}>
+                <TouchableOpacity style={s.buttonSave} onPress={handleSalvarEvento} accessibilityRole="button">
+                  <Text style={s.buttonSaveText}>Salvar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.buttonCancel} onPress={fecharModal} accessibilityRole="button">
-                  <Text style={styles.buttonCancelText}>Cancelar</Text>
+                <TouchableOpacity style={s.buttonCancel} onPress={fecharModal} accessibilityRole="button">
+                  <Text style={s.buttonCancelText}>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -251,44 +255,45 @@ export default function Home() {
   );
 }
 
-// 🔴 CORREÇÃO: Adicionado o parêntese "(" obrigatório após o .create
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f7f6' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#ffffff', borderBottomWidth: 3, borderBottomColor: '#89E1F0' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: '#044D78' },
-  headerSubtitle: { fontSize: 13, color: '#3b6673', fontWeight: '600' },
-  buttonLogout: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6, borderWidth: 2, borderColor: '#3b6673' },
-  buttonLogoutText: { color: '#044D78', fontWeight: '700', fontSize: 14 },
-  listContainer: { padding: 20, paddingBottom: 100 },
-  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  errorText: { color: '#dc2626', fontWeight: '600', fontSize: 16, textAlign: 'center' },
-  emptyText: { textAlign: 'center', color: '#3b6673', fontSize: 16, marginTop: 40, fontWeight: '500' },
-  card: { backgroundColor: '#ffffff', borderRadius: 12, overflow: 'hidden', marginBottom: 20, shadowColor: '#0b1a24', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3, borderWidth: 1, borderColor: 'rgba(82, 140, 157, 0.15)' },
-  cardImage: { width: '100%', height: 180 },
-  cardImagePlaceholder: { width: '100%', height: 180, backgroundColor: '#BED3CF', justifyContent: 'center', alignItems: 'center' },
-  cardImagePlaceholderText: { color: '#3b6673', fontWeight: '600', fontSize: 15 },
-  cardContent: { padding: 16 },
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#044D78', marginBottom: 8 },
-  cardText: { fontSize: 15, color: '#0b1a24', marginBottom: 4, lineHeight: 22 },
-  boldLabel: { color: '#3b6673', fontWeight: '700' },
-  cardActions: { flexDirection: 'row', gap: 10, marginTop: 16 },
-  buttonEdit: { flex: 1, backgroundColor: '#BED3CF', padding: 10, borderRadius: 6, alignItems: 'center' },
-  buttonEditText: { color: '#044D78', fontWeight: '700', fontSize: 14 },
-  buttonDelete: { flex: 1, backgroundColor: '#fee2e2', padding: 10, borderRadius: 6, alignItems: 'center' },
-  buttonDeleteText: { color: '#dc2626', fontWeight: '700', fontSize: 14 },
-  fab: { position: 'absolute', right: 20, bottom: 20, backgroundColor: '#14889c', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
-  fabText: { color: '#ffffff', fontSize: 28, fontWeight: '600', marginTop: -2 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(11, 26, 36, 0.5)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#ffffff', padding: 24, borderRadius: 16, borderTopWidth: 6, borderTopColor: '#14889c', elevation: 10 },
-  modalTitle: { fontSize: 20, fontWeight: '800', color: '#044D78', marginBottom: 16 },
-  form: { gap: 12 },
-  inputGroup: { gap: 4 },
-  label: { fontSize: 14, fontWeight: '700', color: '#3b6673' },
-  input: { backgroundColor: '#f8fafb', borderWidth: 1, borderColor: 'rgba(82, 140, 157, 0.3)', borderRadius: 8, padding: 12, fontSize: 16, color: '#0b1a24' },
-  disabledInput: { backgroundColor: '#e2e8f0', color: '#64748b' },
-  modalActions: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  buttonSave: { flex: 1, backgroundColor: '#14889c', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonSaveText: { color: '#ffffff', fontWeight: '700', fontSize: 16 },
-  buttonCancel: { flex: 1, backgroundColor: '#e2e8f0', padding: 14, borderRadius: 8, alignItems: 'center' },
-  buttonCancelText: { color: '#475569', fontWeight: '700', fontSize: 16 }
-}); // 🔴 CORREÇÃO: Fechamento correto com parêntese e chave ");"
+function createStyles(colors, fontScale) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.bg },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: colors.card, borderBottomWidth: 3, borderBottomColor: colors.accentLight },
+    brand: { fontSize: 12 * fontScale, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, color: colors.accentCyan, marginBottom: 2 },
+    headerTitle: { fontSize: 20 * fontScale, fontWeight: '800', color: colors.primary },
+    headerSubtitle: { fontSize: 13 * fontScale, color: colors.mutedTeal, fontWeight: '600' },
+    buttonLogout: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 6, borderWidth: 2, borderColor: colors.mutedTeal },
+    buttonLogoutText: { color: colors.primary, fontWeight: '700', fontSize: 14 * fontScale },
+    listContainer: { padding: 20, paddingBottom: 100 },
+    centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    errorText: { color: colors.error, fontWeight: '600', fontSize: 16 * fontScale, textAlign: 'center' },
+    emptyText: { textAlign: 'center', color: colors.mutedTeal, fontSize: 16 * fontScale, marginTop: 40, fontWeight: '500' },
+    card: { backgroundColor: colors.card, borderRadius: 12, overflow: 'hidden', marginBottom: 20, shadowColor: colors.text, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3, borderWidth: 1, borderColor: 'rgba(82, 140, 157, 0.15)' },
+    cardImage: { width: '100%', height: 180 },
+    cardImagePlaceholder: { width: '100%', height: 180, backgroundColor: colors.bgSoft, justifyContent: 'center', alignItems: 'center' },
+    cardImagePlaceholderText: { color: colors.mutedTeal, fontWeight: '600', fontSize: 15 * fontScale },
+    cardContent: { padding: 16 },
+    cardTitle: { fontSize: 18 * fontScale, fontWeight: '700', color: colors.primary, marginBottom: 8 },
+    cardText: { fontSize: 15 * fontScale, color: colors.text, marginBottom: 4, lineHeight: 22 * fontScale },
+    boldLabel: { color: colors.mutedTeal, fontWeight: '700' },
+    cardActions: { flexDirection: 'row', gap: 10, marginTop: 16 },
+    buttonEdit: { flex: 1, backgroundColor: colors.bgSoft, padding: 10, borderRadius: 6, alignItems: 'center' },
+    buttonEditText: { color: colors.primary, fontWeight: '700', fontSize: 14 * fontScale },
+    buttonDelete: { flex: 1, backgroundColor: colors.surfaceDanger, padding: 10, borderRadius: 6, alignItems: 'center' },
+    buttonDeleteText: { color: colors.error, fontWeight: '700', fontSize: 14 * fontScale },
+    fab: { position: 'absolute', right: 20, bottom: 76, backgroundColor: colors.accentCyan, width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
+    fabText: { color: colors.textOnAccent, fontSize: 28 * fontScale, fontWeight: '600', marginTop: -2 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(11, 26, 36, 0.5)', justifyContent: 'center', padding: 20 },
+    modalContent: { backgroundColor: colors.card, padding: 24, borderRadius: 16, borderTopWidth: 6, borderTopColor: colors.accentCyan, elevation: 10 },
+    modalTitle: { fontSize: 20 * fontScale, fontWeight: '800', color: colors.primary, marginBottom: 16 },
+    form: { gap: 12 },
+    inputGroup: { gap: 4 },
+    label: { fontSize: 14 * fontScale, fontWeight: '700', color: colors.mutedTeal },
+    input: { backgroundColor: colors.surfaceInput, borderWidth: 1, borderColor: 'rgba(82, 140, 157, 0.3)', borderRadius: 8, padding: 12, fontSize: 16 * fontScale, color: colors.text },
+    modalActions: { flexDirection: 'row', gap: 12, marginTop: 12 },
+    buttonSave: { flex: 1, backgroundColor: colors.accentCyan, padding: 14, borderRadius: 8, alignItems: 'center' },
+    buttonSaveText: { color: colors.textOnAccent, fontWeight: '700', fontSize: 16 * fontScale },
+    buttonCancel: { flex: 1, backgroundColor: colors.surfaceMuted, padding: 14, borderRadius: 8, alignItems: 'center' },
+    buttonCancelText: { color: colors.text, fontWeight: '700', fontSize: 16 * fontScale }
+  });
+}
