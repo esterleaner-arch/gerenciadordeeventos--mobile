@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,7 +11,16 @@ import Home from '../pages/Home';
 const Stack = createStackNavigator();
 
 export default function Routes() {
-  const { signed } = useAuth();
+  const { signed, loading } = useAuth();
+
+  // Exibe uma tela de carregamento enquanto a sessão é restaurada do armazenamento
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f4f7f6' }}>
+        <ActivityIndicator size="large" color="#044D78" />
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator

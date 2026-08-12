@@ -5,6 +5,23 @@ import api from '../services/api';
 
 const AuthContext = createContext({});
 
+// Decodifica o payload do JWT para extrair o adminId (o backend retorna apenas o token)
+function decodificarToken(token) {
+  try {
+    const payload = token.split('.')[1];
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +45,9 @@ export function AuthProvider({ children }) {
       const response = await api.post('/auth/login', { email, senha });
       
       const token = response.data.token || response.data.tokenJwt;
-      const id = response.data.id || response.data.adminId || response.data.admin?.id;
+      // O backend retorna apenas o token; o adminId é extraído do payload do JWT
+      const dadosToken = decodificarToken(token);
+      const id = response.data.id || response.data.adminId || response.data.admin?.id || dadosToken?.adminId;
 
       if (!token || !id) {
         throw new Error("Resposta incompleta do servidor.");

@@ -2,8 +2,8 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const api = axios.create({
-  // ⚠️ SUBSTITUA PELO SEU ENDEREÇO IPV4 DO WINDOWS (Mantenha a porta 8080)
-  baseURL: 'http://192.168.0.204', 
+  // ⚠️ SUBSTITUA PELO SEU ENDEREÇO IPV4 DO WINDOWS (Mantenha a porta 8080 e o /api)
+  baseURL: 'http://192.168.0.204:8080/api', 
   timeout: 10000,
 });
 
